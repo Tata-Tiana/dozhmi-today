@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Дожми сегодня</title>
+  <style>
+    :root { color-scheme: light; --ink:#172334; --muted:#667386; --line:#dce3ec; --paper:#fff; --bg:#f4f7fb; --blue:#2057c7; --blue-dark:#1743a0; --green:#13745e; --gold:#b77b00; --red:#a34535; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    main { width:min(1120px, calc(100% - 32px)); margin:40px auto 72px; }
+    header { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; margin-bottom:26px; }
+    h1 { margin:0; font-size:34px; letter-spacing:-.04em; line-height:1.1; }
+    .subtitle { color:var(--muted); margin:9px 0 0; max-width:660px; }
+    .local-badge { padding:8px 12px; border:1px solid #c9e3dc; color:var(--green); background:#eff9f5; border-radius:999px; white-space:nowrap; font-size:13px; font-weight:650; }
+    .panel { background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:22px; box-shadow:0 5px 18px rgba(24,44,73,.035); }
+    .controls { display:grid; grid-template-columns:1.35fr .75fr .75fr; gap:16px; align-items:start; }
+    label { display:block; font-size:13px; font-weight:650; margin-bottom:7px; }
+    input, select { width:100%; height:44px; border:1px solid #cad4e0; border-radius:9px; background:#fff; color:var(--ink); padding:0 12px; font:inherit; }
+    input[type=file] { padding:8px; }
+    .actions { display:flex; justify-content:flex-end; gap:10px; margin-top:17px; }
+    button { border:0; border-radius:10px; background:var(--blue); color:#fff; padding:12px 18px; font:inherit; font-weight:700; cursor:pointer; min-height:44px; }
+    button:hover { background:var(--blue-dark); }
+    button.secondary { background:#edf2fa; color:var(--blue-dark); border:1px solid #cfdbed; }
+    button.secondary:hover { background:#e1eaf8; }
+    button:disabled { cursor:wait; opacity:.65; }
+    .help, .status { color:var(--muted); font-size:13px; margin:8px 0 0; }
+    .status { min-height:20px; }
+    .notice { margin-top:16px; padding:11px 13px; border-radius:9px; background:#f3f6fa; color:#596779; font-size:13px; }
+    .notice.warning { background:#fff6e7; color:#77541a; }
+    .results { margin-top:24px; }
+    .results-head { display:flex; justify-content:space-between; align-items:baseline; gap:16px; margin-bottom:12px; }
+    h2 { font-size:21px; margin:0; letter-spacing:-.02em; }
+    .summary { color:var(--muted); font-size:13px; }
+    .deal-list { display:grid; gap:10px; }
+    .deal { display:grid; grid-template-columns:50px minmax(0,1fr) auto; gap:15px; background:#fff; border:1px solid var(--line); border-radius:14px; padding:17px; }
+    .deal.featured { border-color:#b8dfd2; background:#f5fbf8; box-shadow:0 3px 12px rgba(19,116,94,.06); }
+    .deal.muted { grid-template-columns:38px minmax(0,1fr) auto; padding:12px 15px; background:#f0f2f4; border-color:#e4e7eb; color:#89919b; }
+    .deal.muted .rank { width:30px; height:30px; color:#8b949e; background:#e2e5e9; }
+    .deal.muted .deal-title strong, .deal.muted .amount { color:#858e98; font-size:14px; }
+    .deal.muted .deal-sub, .deal.muted .reasons, .deal.muted .score { color:#a0a7af; }
+    .deal.muted .action { margin-top:5px; color:#8e969f; font-size:13px; font-weight:500; }
+    .rest-heading { margin:24px 0 10px; color:#8a939d; font-size:15px; }
+    .rank { width:38px; height:38px; border-radius:11px; display:grid; place-items:center; font-weight:750; color:var(--blue-dark); background:#eaf0fc; }
+    .deal-title { display:flex; align-items:baseline; flex-wrap:wrap; gap:8px 12px; }
+    .deal-title strong { font-size:17px; }
+    .deal-sub { color:var(--muted); font-size:13px; }
+    .amount { font-weight:750; font-size:16px; white-space:nowrap; }
+    .action { margin-top:9px; font-weight:650; }
+    .reasons { margin-top:8px; color:var(--muted); font-size:13px; }
+    .tag-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+    .tag { display:inline-block; border-radius:999px; padding:3px 8px; background:#f0f3f7; color:#526073; font-size:11px; }
+    .tag.risk { background:#fff1ed; color:var(--red); }
+    .score { color:var(--gold); font-size:12px; font-weight:700; margin-top:3px; text-align:right; white-space:nowrap; }
+    .final-line { margin-top:16px; padding:15px 17px; background:#eef5ff; border:1px solid #d5e3fc; border-radius:11px; font-weight:750; }
+    details { margin-top:16px; color:var(--muted); font-size:13px; }
+    details summary { cursor:pointer; font-weight:650; }
+    .excluded-list { padding-left:20px; }
+    .excluded-list li { margin-top:6px; }
+    .empty { padding:36px 20px; text-align:center; color:var(--muted); border:1px dashed #cbd5e1; border-radius:12px; background:#fbfcfe; }
+    .spinner { display:inline-block; width:14px; height:14px; border:2px solid #b9c8df; border-top-color:var(--blue); border-radius:50%; animation:spin .8s linear infinite; vertical-align:-2px; margin-right:8px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @media (max-width:760px) {
+      main { margin:22px auto 48px; width:min(100% - 22px, 620px); }
+      header { display:block; }
+      .local-badge { display:inline-block; margin-top:14px; }
+      h1 { font-size:29px; }
+      .controls { grid-template-columns:1fr; gap:13px; }
+      .actions { align-items:stretch; flex-direction:column; }
+      .deal { grid-template-columns:38px minmax(0,1fr); padding:14px; gap:10px; }
+      .deal.muted { grid-template-columns:30px minmax(0,1fr); padding:11px; }
+      .amount { grid-column:2; grid-row:2; }
+      .score { grid-column:2; grid-row:1; text-align:left; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Дожми сегодня</h1>
+        <p class="subtitle">Локальный помощник отдела продаж. Он читает CSV, распознаёт известные сигналы в комментариях и ранжирует сделки по прозрачным правилам.</p>
+      </div>
+      <div class="local-badge">● Код без нейросетей</div>
+    </header>
+
+    <section class="panel" aria-label="Настройки расчёта">
+      <div class="controls">
+        <div>
+          <label for="csvFile">Выгрузка сделок CSV</label>
+          <input id="csvFile" type="file" accept=".csv,text/csv">
+          <p class="help" id="fileName">Выберите CSV из листа «Сделки».</p>
+        </div>
+        <div>
+          <label for="today">Дата «Сегодня»</label>
+          <input id="today" type="date">
+        </div>
+        <div>
+          <label for="planGap">До плана осталось, ₽</label>
+          <input id="planGap" type="number" min="0" step="10000" value="1550000">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="runButton" type="button" disabled>Выбрать 5 сделок</button>
+      </div>
+      <p class="notice">Никакая модель не запускается. Комментарии сопоставляются со словарём выражений в коде. Если сигнал или следующий шаг не распознан, программа показывает «не уверен».</p>
+    </section>
+
+    <section class="results" id="results" hidden aria-live="polite">
+      <div class="results-head">
+        <h2>Пятёрка на сегодня</h2>
+        <div class="summary" id="runSummary"></div>
+      </div>
+      <div id="warning" class="notice" hidden></div>
+      <div class="deal-list" id="selectedList"></div>
+      <div class="final-line" id="finalLine"></div>
+      <h3 class="rest-heading" id="restHeading"></h3>
+      <div class="deal-list" id="otherList"></div>
+    </section>
+  </main>
+
+  <script>
+    const fileInput = document.getElementById('csvFile');
+    const fileName = document.getElementById('fileName');
+    const runButton = document.getElementById('runButton');
+    let loadedDeals = null;
+    let loadedName = '';
+
+    function setLocalDate() {
+      const date = new Date();
+      const pad = value => String(value).padStart(2, '0');
+      document.getElementById('today').value = `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+    }
+
+    function delimiterFor(text) {
+      const counts = { ',': 0, ';': 0, '\t': 0 };
+      let quoted = false;
+      for (let i = 0; i < text.length && text[i] !== '\n' && text[i] !== '\r'; i++) {
+        if (text[i] === '"') {
+          if (quoted && text[i+1] === '"') i++;
+          else quoted = !quoted;
+        } else if (!quoted && Object.hasOwn(counts, text[i])) counts[text[i]]++;
+      }
+      return Object.entries(counts).sort((a,b) => b[1]-a[1])[0][0];
+    }
+
+    function parseCsv(text) {
+      text = text.replace(/^\uFEFF/, '');
+      const delimiter = delimiterFor(text);
+      const rows = [];
+      let row = [], value = '', quoted = false;
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (quoted) {
+          if (char === '"' && text[i+1] === '"') { value += '"'; i++; }
+          else if (char === '"') quoted = false;
+          else value += char;
+        } else if (char === '"') quoted = true;
+        else if (char === delimiter) { row.push(value); value = ''; }
+        else if (char === '\n' || char === '\r') {
+          if (char === '\r' && text[i+1] === '\n') i++;
+          row.push(value); value = '';
+          if (row.some(cell => cell.trim() !== '')) rows.push(row);
+          row = [];
+        } else value += char;
+      }
+      if (quoted) throw new Error('В CSV не закрыта кавычка. Пересохраните файл в формате CSV.');
+      if (value.length || row.length) { row.push(value); if (row.some(cell => cell.trim() !== '')) rows.push(row); }
+      if (rows.length < 2) throw new Error('В CSV нет строк со сделками.');
+      return rows;
+    }
+
+    function headerKey(value) {
+      return String(value).toLowerCase().replaceAll('ё','е').replace(/[^a-zа-я0-9]/g, '');
+    }
+
+    const columns = {
+      id: ['№','номер','id','номерсделки'],
+      client: ['клиент','покупатель','названиеклиента','компания'],
+      customer_type: ['типклиента','типпокупателя'],
+      product: ['товар','продукт','наименование','названиепродукта'],
+      amount: ['сумма','суммасделки','бюджет','стоимость'],
+      stage: ['этап','стадия','статус'],
+      created_at: ['создана','датасоздания','создано'],
+      last_contact: ['последнийконтакт','датапоследнегоконтакта'],
+      next_step_date: ['следующийшагдата','датаследующегоконтакта','следующийшаг'],
+      comment: ['комментарийменеджера','комментарий','примечание','заметка']
+    };
+
+    function rowsToDeals(rows) {
+      const headers = rows[0].map(headerKey);
+      const indexes = {};
+      for (const [field, aliases] of Object.entries(columns)) {
+        const aliasSet = aliases.map(headerKey);
+        indexes[field] = headers.findIndex(header => aliasSet.includes(header));
+      }
+      const required = ['client','amount','stage','comment'];
+      const missing = required.filter(field => indexes[field] < 0);
+      if (missing.length) throw new Error(`Не найдены обязательные столбцы: ${missing.join(', ')}. Проверьте заголовки CSV.`);
+      return rows.slice(1).map((cells, rowIndex) => {
+        const get = field => indexes[field] < 0 ? '' : (cells[indexes[field]] || '').trim();
+        return {
+          id: get('id') || String(rowIndex+1),
+          client: get('client'), customer_type: get('customer_type'), product: get('product'),
+          amount: get('amount'), stage: get('stage'), created_at: get('created_at'),
+          last_contact: get('last_contact'), next_step_date: get('next_step_date'), comment: get('comment')
+        };
+      }).filter(deal => deal.client || deal.comment || deal.amount);
+    }
+
+    function renderResults(result) {
+      const results = document.getElementById('results');
+      const selectedList = document.getElementById('selectedList');
+      const otherList = document.getElementById('otherList');
+      const warning = document.getElementById('warning');
+      results.hidden = false;
+      selectedList.replaceChildren();
+      otherList.replaceChildren();
+      document.getElementById('runSummary').textContent = `${result.selected.length} из ${loadedDeals.length} сделок · ${new Date(result.today+'T00:00:00').toLocaleDateString('ru-RU')} · ${result.mode}`;
+      warning.hidden = !result.warning;
+      warning.className = result.warning ? 'notice warning' : 'notice';
+      warning.textContent = result.warning || '';
+      if (!result.selected.length) {
+        selectedList.innerHTML = '<div class="empty">Не удалось определить подходящие сделки.</div>';
+      }
+      const selected = result.all_deals.filter(deal => deal.selected_rank).sort((a,b) => a.selected_rank-b.selected_rank);
+      const otherDeals = result.all_deals.filter(deal => !deal.selected_rank);
+      function addCard(deal, target, muted=false) {
+        const card = document.createElement('article');
+        card.className = muted ? 'deal muted' : 'deal featured';
+        const rank = document.createElement('div'); rank.className = 'rank'; rank.textContent = muted ? '·' : deal.selected_rank;
+        const content = document.createElement('div');
+        const title = document.createElement('div'); title.className = 'deal-title';
+        const client = document.createElement('strong'); client.textContent = `№ ${deal.id} · ${deal.client}`;
+        const stage = document.createElement('span'); stage.className = 'deal-sub'; stage.textContent = deal.stage || 'Этап не указан';
+        title.append(client, stage);
+        const action = document.createElement('div'); action.className = 'action';
+        action.textContent = muted ? `Не выбрана на сегодня · ${deal.primary_reason}` : deal.action;
+        const reason = document.createElement('div'); reason.className = 'reasons';
+        reason.textContent = muted ? (deal.reasons.slice(0,2).join(' · ') || 'Приоритет ниже выбранной пятёрки') : `Почему выбрана: ${deal.reasons.join(' · ') || deal.primary_reason}`;
+        const tags = document.createElement('div'); tags.className = 'tag-row';
+        for (const signal of (deal.signal_labels || [])) {
+          const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = signal; tags.append(tag);
+        }
+        if (deal.next_step_date) {
+          const tag = document.createElement('span'); tag.className = 'tag';
+          tag.textContent = `Следующий шаг: ${new Date(deal.next_step_date+'T00:00:00').toLocaleDateString('ru-RU')}`;
+          tags.append(tag);
+        }
+        content.append(title, action, reason, tags);
+        const side = document.createElement('div');
+        const amount = document.createElement('div'); amount.className = 'amount'; amount.textContent = `${new Intl.NumberFormat('ru-RU').format(deal.amount)} ₽`;
+        const score = document.createElement('div'); score.className = 'score'; score.textContent = muted ? 'Вне пятёрки' : `Приоритет ${deal.score}/100`;
+        side.append(amount, score);
+        card.append(rank, content, side); target.append(card);
+      }
+      for (const deal of selected) addCard(deal, selectedList);
+      for (const deal of otherDeals) addCard(deal, otherList, true);
+      document.getElementById('finalLine').textContent = result.final_line;
+      document.getElementById('restHeading').textContent = `Остальные сделки (${otherDeals.length}) · оставлены для обзора`;
+    }
+
+    async function runAnalysis() {
+      if (!loadedDeals) { alert('Сначала выберите CSV-файл.'); return; }
+      const date = document.getElementById('today').value;
+      if (!date) { alert('Укажите дату расчёта.'); return; }
+      runButton.disabled = true;
+      const oldLabel = runButton.textContent;
+      runButton.innerHTML = '<span class="spinner"></span>Разбираю сделки…';
+      document.getElementById('results').hidden = true;
+      try {
+        const response = await fetch('/api/analyze', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({today:date, plan_gap:document.getElementById('planGap').value, deals:loadedDeals})
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Не удалось обработать файл.');
+        renderResults(result);
+      } catch (error) {
+        alert(error.message || 'Не удалось связаться с локальным приложением.');
+      } finally {
+        runButton.disabled = false;
+        runButton.textContent = oldLabel;
+      }
+    }
+
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files?.[0];
+      if (!file) return;
+      try {
+        if (file.size > 3_000_000) throw new Error('Файл больше 3 МБ. Сохраните выгрузку только со столбцами из листа «Сделки».');
+        const rows = parseCsv(await file.text());
+        loadedDeals = rowsToDeals(rows);
+        loadedName = file.name;
+        fileName.textContent = `${loadedName} · ${loadedDeals.length} сделок`;
+        runButton.disabled = false;
+        document.getElementById('results').hidden = true;
+      } catch (error) {
+        loadedDeals = null;
+        runButton.disabled = true;
+        fileName.textContent = 'Не удалось прочитать CSV.';
+        alert(error.message);
+      }
+    });
+
+    runButton.addEventListener('click', runAnalysis);
+
+    setLocalDate();
+  </script>
+</body>
+</html>
